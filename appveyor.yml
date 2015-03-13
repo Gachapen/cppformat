@@ -3,8 +3,8 @@ environment:
   matrix:
   - BUILD: msvc
     CONFIG: Debug
-  - BUILD: msvc
-    CONFIG: Release
+#  - BUILD: msvc
+#    CONFIG: Release
 #  - BUILD: mingw
 #    CONFIG: Debug
 #  - BUILD: mingw

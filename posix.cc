@@ -57,7 +57,6 @@
 #  define _SH_DENYNO 0x40
 #  undef fileno
 # endif
-
 #endif  // _WIN32
 
 namespace {

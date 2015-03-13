@@ -86,6 +86,15 @@ using fmt::internal::Arg;
 #endif
 
 namespace {
+// -2 is not a valid return value for strerror_r so use it to indicate
+// that the system doesn't provide this function.
+enum { MISSING_STRERROR = -2 };
+}
+
+// A dummy implementation of strerror_r mostly for MinGW.
+static inline int strerror_r(int, char *, ...) { return MISSING_STRERROR; }
+
+namespace {
 
 #ifndef _MSC_VER
 # define FMT_SNPRINTF snprintf
@@ -142,11 +151,18 @@ int safe_strerror(
     int error_code, char *&buffer, std::size_t buffer_size) FMT_NOEXCEPT {
   assert(buffer != 0 && buffer_size != 0);
   int result = 0;
-#if ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE) || __ANDROID__
+#if ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE) || \
+    __ANDROID__ || __MINGW32__
   // XSI-compliant version of strerror_r.
   result = strerror_r(error_code, buffer, buffer_size);
-  if (result != 0)
+  if (result != 0) {
+    if (result == MISSING_STRERROR) {
+      errno = 0;
+      (void)buffer_size;
+      buffer = strerror(error_code);
+    }
     result = errno;
+  }
 #elif _GNU_SOURCE
   // GNU-specific version of strerror_r.
   char *message = strerror_r(error_code, buffer, buffer_size);
@@ -154,11 +170,6 @@ int safe_strerror(
   if (message == buffer && strlen(buffer) == buffer_size - 1)
     result = ERANGE;
   buffer = message;
-#elif __MINGW32__
-  errno = 0;
-  (void)buffer_size;
-  buffer = strerror(error_code);
-  result = errno;
 #elif _WIN32
   result = strerror_s(buffer, buffer_size, error_code);
   // If the buffer is full then the message is probably truncated.

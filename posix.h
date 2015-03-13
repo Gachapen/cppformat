@@ -59,7 +59,7 @@
 # define FMT_POSIX_CALL(call) FMT_SYSTEM(call)
 #else
 # define FMT_SYSTEM(call) call
-# ifdef _WIN32
+# if defined(_WIN32) && !defined(__MINGW32__)
 // Fix warnings about deprecated symbols.
 #  define FMT_POSIX_CALL(call) ::_##call
 # else
