@@ -158,7 +158,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif ()
 
 enable_testing()
-add_subdirectory(test)
+#add_subdirectory(test)
 
 if (EXISTS .gitignore)
   # Get the list of ignored files from .gitignore.
