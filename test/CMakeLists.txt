@@ -14,8 +14,20 @@ function(add_fmt_test name)
   add_test(NAME ${name} COMMAND ${name})
 endfunction()
 
+check_cxx_source_compiles("
+  enum C : char {A};
+  int main() {}"
+  HAVE_ENUM_BASE)
+if (HAVE_ENUM_BASE)
+  add_definitions(-DFMT_USE_ENUM_BASE=1)
+endif ()
+
 add_fmt_test(gtest-extra-test)
 add_fmt_test(format-test)
+if (FMT_EXTRA_TESTS AND MSVC)
+  set_target_properties(format-test PROPERTIES COMPILE_FLAGS /W4)
+endif ()
+
 add_fmt_test(format-impl-test CUSTOM_LINK)
 add_fmt_test(printf-test)
 foreach (target format-test printf-test)
@@ -46,8 +58,6 @@ if (HAVE_TYPE_TRAITS)
 endif ()
 
 add_executable(macro-test macro-test.cc ${FMT_TEST_SOURCES} ${TEST_MAIN_SRC})
-set_target_properties(macro-test
-  PROPERTIES COMPILE_DEFINITIONS "FMT_USE_VARIADIC_TEMPLATES=0")
 target_link_libraries(macro-test gmock)
 
 if (HAVE_OPEN)
